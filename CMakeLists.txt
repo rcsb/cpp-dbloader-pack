@@ -28,3 +28,30 @@ set(BUILD_LIBRARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 include(cmake/commonparser.cmake)
 include(cmake/dbloader.cmake)
+
+
+#
+#
+# Distribution CPack configuration
+#
+set(CPACK_PACKAGE_VERSION_MAJOR "4")
+set(CPACK_PACKAGE_VERSION_MINOR "5")
+set(CPACK_PACKAGE_VERSION_PATCH "dev0")
+set(CPACK_SOURCE_GENERATOR "TBZ2;TGZ")
+if(NOT DEFINED CPACK_SOURCE_PACKAGE_FILE_NAME)
+  set(CPACK_SOURCE_PACKAGE_FILE_NAME
+    "${CMAKE_PROJECT_NAME}-v${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}${CPACK_PACKAGE_VERSION_PATCH}-prod-src")
+endif(NOT DEFINED CPACK_SOURCE_PACKAGE_FILE_NAME)
+
+set(CPACK_SOURCE_IGNORE_FILES
+  "/build/;/.bzr/;.git/;/.gitmodules;/.github/;/.gitignore;~$;/.*/.git;/.*/.svn;.idea/;${CPACK_SOURCE_IGNORE_FILES}")
+# Inspired by https://jtanx.github.io/2019/08/22/cmake-dist-customisation/ package selected dictionaries
+#set(CPACK_INSTALL_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/CPackExtraDist.cmake")
+#  configure_file("${CMAKE_SOURCE_DIR}/cmake/ExtraDist.cmake.in" "CPackExtraDist.cmake" @ONLY)
+include(CPack)
+add_custom_target(dist
+    COMMAND "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --target package_source
+    # DEPENDS test_dependencies
+    VERBATIM
+    USES_TERMINAL
+  )
