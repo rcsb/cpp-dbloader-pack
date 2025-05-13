@@ -14,7 +14,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    name: compile everything
+    name: compile all
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -31,7 +31,7 @@ jobs:
     - name: configure
       run: cmake -S . -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=RELEASE
     - name: build
-      run: cmake --build ${{github.workspace}}/build --target everything -j
+      run: cmake --build ${{github.workspace}}/build --target all -j
     #- name: test
     #  run: cd build && ctest
 
