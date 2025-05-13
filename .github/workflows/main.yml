@@ -1,0 +1,45 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Testing
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    # branches: [ master ]
+  pull_request:
+    # branches: [ master ]
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    name: compile everything
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - name: Install dependencies
+      run: |
+           sudo apt-get clean
+           sudo apt-get install flex bison csh
+    # Runs a single command using the runners shell
+    - name: configure
+      run: cmake -S . -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=RELEASE
+    - name: build
+      run: cmake --build ${{github.workspace}}/build --target everything -j
+    #- name: test
+    #  run: cd build && ctest
+
+    - name: Make dist
+      run: cd ${{github.workspace}}/build && make dist
+
+    - name: Archive package
+      uses: actions/upload-artifact@v4
+      with:
+        name: cpack output
+        path: ${{github.workspace}}/build/*.bz2
