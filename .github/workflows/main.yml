@@ -26,7 +26,8 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get clean
-           sudo apt-get install flex bison tcsh
+           sudo apt-get update
+           sudo apt-get install -y cmake flex bison tcsh
     # Runs a single command using the runners shell
     - name: configure
       run: cmake -S . -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=RELEASE
@@ -47,5 +48,45 @@ jobs:
     - name: Archive package
       uses: actions/upload-artifact@v4
       with:
-        name: cpack output
+        name: cpack-output
         path: ${{github.workspace}}/build/*.bz2
+
+###################
+  test-dist:
+    name: compile test distribution
+    runs-on: ubuntu-latest
+    needs: build
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - name: Download distribution
+      uses: actions/download-artifact@v4
+      with:
+        name: cpack-output
+
+    - name: Install dependencies
+      run: |
+           sudo apt-get clean
+           sudo apt-get update
+           sudo apt-get install -y cmake flex bison tcsh
+
+    - name: Capture the artifact filename
+      run: |
+           echo "distfile=`ls *.bz2`" >> $GITHUB_OUTPUT
+      id: distfile
+
+    - name: Extract sources
+      run: |
+           bzip2 -d -c ${{ steps.distfile.outputs.distfile }} | tar xvf -
+
+    - name: Capture the source tree
+      run: |
+           echo "src=`ls -d dblo*src`" >> $GITHUB_OUTPUT
+      id: srcdir
+
+    - name: configure
+      run: cmake -S ${{ steps.srcdir.outputs.src }} -B ${{ steps.srcdir.outputs.src }}/build -DCMAKE_BUILD_TYPE=RELEASE
+    - name: build
+      run: cmake --build ${{ steps.srcdir.outputs.src }}/build --target all -j
+    - name: test
+      run: cd ${{ steps.srcdir.outputs.src }}/build  && ls test && ctest
